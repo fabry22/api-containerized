@@ -1,0 +1,25 @@
+version: "3.4"
+   
+services:
+  db:
+    image: mysql:5.7
+    volumes:
+    - "./.mysql-data/db:/var/lib/mysql"
+    - "./modems.sql:/docker-entrypoint-initdb.d/modems.sql"
+    restart: always
+    ports:
+        - "3306:3306"
+    environment:
+        MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+        MYSQL_DATABASE: ${MYSQL_DATABASE} 
+        MYSQL_USER: ${MYSQL_USER} 
+        MYSQL_PASSWORD: ${MYSQL_PASSWORD} 
+  web:
+    build: .
+    command: ["./wait-for","db:3306","-t","${TIMEOUT}","--","python","web/manage.py","runserver","0.0.0.0:8000"]
+    volumes:
+      - .:/${REPOSITORY_NAME}
+    ports:
+      - "8000:8000"
+    depends_on: 
+      - db
